@@ -206,11 +206,6 @@ int main(int argc, char *argv[]) {
     exit(-1);
   }
 
-  // Variáveis da rede
-  p=strtod(argv[3],NULL);
-  n=atoi(argv[1]);
-  K=atoi(argv[2]);
-
   // Coletando informações a partir do arquivo de estado inicial
   fscanf(in,"# N=%d\tk=%d\tp=%lf\tsem=%lu\tJ=%lf\teps=%lf\tq=%lf\tSR=%lu\n",&n,&K,&p,&sem,&P.J,&P.eps,&P.q,&sem_rede);
   fscanf(in, "# Semente: %lu\n", &sem);
@@ -227,6 +222,10 @@ int main(int argc, char *argv[]) {
   strcpy(out,argv[4]);
   strcpy(fran,argv[5]);
 
+  // Mostra na tela os parâmetros do problema
+  printf("\n# N=%d\tk=%d\tp=%lf\tsem=%lu\tJ=%lf\teps=%lf\tq=%lf\tSR=%lu\n",
+  	  n,K,p,sem,P.J,P.eps,P.q,sem_rede);
+
   // Alocando a estrutura de armazenamento da rede
   rede=(int **)malloc(n*Ip);
   for(i=0;i<n;i++) {
@@ -236,6 +235,7 @@ int main(int argc, char *argv[]) {
   makesw(rede,sem_rede);
 
 
+  puts("a");
   hist=(int *)calloc(n,I);
   for(i=0;i<n;i++) {
     hist[rede[i][0]]++;
