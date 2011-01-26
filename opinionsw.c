@@ -30,8 +30,7 @@ void makesw(int **rede, unsigned long int sem) {
 
   // iniciar semente
   r=gsl_rng_alloc(gsl_rng_mt19937);
-  gsl_rng_set(r,sem); 
-
+  gsl_rng_set(r,sem);
   for(i=0;i<n;i++) {
     for(j=1;j<=K;j++) {
       ran=gsl_rng_uniform(r);
@@ -39,27 +38,28 @@ void makesw(int **rede, unsigned long int sem) {
 	nrand=(i+K+1+gsl_rng_get(r)%(n-K-1))%n;
 	// Aloca para poder ter espaço, i-->nrand
 	rede[i][0]++; // Incrementa a conectividade
-	rede[i]=(int *)realloc(rede[i],(rede[i][0]+1)*I);
+	rede[i]=(int *)realloc(rede[i],(rede[i][0]+2)*I);
 	rede[i][rede[i][0]]=nrand;
 	// Aloca para poder ter espaço, nrand-->i
 	rede[nrand][0]++; // Incrementa a conectividade
-	rede[nrand]=(int *)realloc(rede[nrand],(rede[nrand][0]+1)*I);
+	rede[nrand]=(int *)realloc(rede[nrand],(rede[nrand][0]+2)*I);
 	rede[nrand][rede[nrand][0]]=i;
 	
       }
-      else
+      else {
 	nex=(i+j)%n;
 	// Aloca para poder ter espaço, i-->nex
 	rede[i][0]++;
-	rede[i]=(int *)realloc(rede[i],(rede[i][0]+1)*I);
+	rede[i]=(int *)realloc(rede[i],(rede[i][0]+2)*I);
 	rede[i][rede[i][0]]=nex;
 	// Aloca para poder ter espaço, nex-->i
 	rede[nex][0]++;
-	rede[nex]=(int *)realloc(rede[nex],(rede[nex][0]+1)*I);
+	rede[nex]=(int *)realloc(rede[nex],(rede[nex][0]+2)*I);
 	rede[nex][rede[nex][0]]=i;
+      }
     }
   }
-
+ 
   gsl_rng_free(r);
 
 }
@@ -115,6 +115,7 @@ void opiniao(int **rede, par *P, int s[], unsigned long int sem, unsigned long i
   gsl_rng *r;
 
   // Arquivo de saída de estado
+  strcpy(ou,out);
   strcat(ou,"~");
 
   // Iniciando a galera
@@ -125,7 +126,6 @@ void opiniao(int **rede, par *P, int s[], unsigned long int sem, unsigned long i
   
   // Constrói as taxas de k=0 até o grau máximo
   tau=make_tau(k_max,J,q,epsilon);
-
   // Iniciando a semente de números aleatórios
   r = gsl_rng_alloc (gsl_rng_mt19937);
   gsl_rng_fread(ff,r);
@@ -196,10 +196,12 @@ int main(int argc, char *argv[]) {
   }
 
   unsigned long int sem, sem_rede;
-  int i, **rede, *s, *hist;
+  int i, **rede, *s;
   par P;
   char out[255], fran[255];
   FILE *in=fopen(argv[1],"r");
+
+  // int *hist;
 
   if(in==NULL) {
     printf("Arquivo de estado inicial inválido.\n");
@@ -231,25 +233,25 @@ int main(int argc, char *argv[]) {
   for(i=0;i<n;i++) {
     rede[i]=(int *)calloc(1,I);
   }
-
+  
   makesw(rede,sem_rede);
+  opiniao(rede,&P,s,sem,sem_rede,out,fran);
 
 
-  puts("a");
-  hist=(int *)calloc(n,I);
-  for(i=0;i<n;i++) {
-    hist[rede[i][0]]++;
-  }
+  /* hist=(int *)calloc(n,I); */
+  /* for(i=0;i<n;i++) { */
+  /*   hist[rede[i][0]]++; */
+  /* } */
 
-  for(i=0;i<n;i++)
-    if(hist[i]!=0) printf("%d %d\n",i,hist[i]);
+  /* for(i=0;i<n;i++) */
+  /*   if(hist[i]!=0) printf("%d %d\n",i,hist[i]); */
 
-  for(i=0;i<n;i++) {
-    free(rede[i]);
-  }
+  /* for(i=0;i<n;i++) { */
+  /*   free(rede[i]); */
+  /* } */
+  /* free(hist); */
 
   free(rede);
-  free(hist);
 
   //printf("A semente foi %lu.\n", sem);
 
