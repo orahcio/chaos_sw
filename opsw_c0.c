@@ -99,6 +99,27 @@ double *make_tau(int n, double J, double q, double epsilon) {
 
 }
 
+int zero(int sem, double rho_0) {
+
+  // Constrói um estado incial com uma concentração rho_0 de sítios ativos
+
+  int i, *s_0;
+  gsl_rng *r=gsl_rng_alloc(gsl_rng_mt19937);;
+
+  // Iniciando a semente de números aleatórios
+  gsl_rng_set(r,sem_rede);
+
+  // Alocando o vetor de estado
+  s_0=(int *)calloc(n,I);
+
+  for(i=0;i<n;i++) {
+    if(gsl_rng_uniform(r)<rho_0) s_0[i]=1;
+  }
+
+  return s_0;
+
+}
+
 void opiniao(int **rede, par *P, int s[], unsigned long int sem, unsigned long int sem_rede, char out[], char fran[]) {
   // ---------------------------------------------------
   // Aqui é a parte da simulação da dinâmica de opinião.
