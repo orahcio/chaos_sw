@@ -99,27 +99,6 @@ double *make_tau(int n, double J, double q, double epsilon) {
 
 }
 
-int zero(int sem, double rho_0) {
-
-  // Constrói um estado incial com uma concentração rho_0 de sítios ativos
-
-  int i, *s_0;
-  gsl_rng *r=gsl_rng_alloc(gsl_rng_mt19937);;
-
-  // Iniciando a semente de números aleatórios
-  gsl_rng_set(r,sem_rede);
-
-  // Alocando o vetor de estado
-  s_0=(int *)calloc(n,I);
-
-  for(i=0;i<n;i++) {
-    if(gsl_rng_uniform(r)<rho_0) s_0[i]=1;
-  }
-
-  return s_0;
-
-}
-
 void opiniao(int **rede, par *P, int s[], unsigned long int sem, unsigned long int sem_rede, char out[], char fran[]) {
   // ---------------------------------------------------
   // Aqui é a parte da simulação da dinâmica de opinião.
@@ -210,33 +189,14 @@ void opiniao(int **rede, par *P, int s[], unsigned long int sem, unsigned long i
 
 int main(int argc, char *argv[]) {
 
-  // ----------------------------------------------------------------
-  // Nesta versão os estados iniciais são gerados para diversas redes
-  // com o meso valor de p.
-  // ----------------------------------------------------------------
-
-  if(argc<8) {
-    printf("Use %s <Dados de entrada: >\n",argv[0]);
-    printf("Dados de entrada: <n sítios>"); // 1
-    printf(" <k vizinhos pra frente>"); // 2
-    printf(" <p WS-model>"); // 3
-    printf(" <semente>"); // 4
-    printf(" <epsilon>"); // 5
-    printf(" <J>"); // 6
-    printf(" <q>"); // 7
-    printf("Veja o cabeçalho do fonte para as definições dos parametros\n");
-    exit(-1);
-  }
-
   if(argc<6) {
-    printf("Use %s <2. T mcs> <3. T mcs para salvar> ",argv[0]);
-    printf("<4. TS para densidade>\n");
+    printf("Use %s <1. estado inicial> <2. T mcs> <3. T mcs para salvar> ",argv[0]);
+    printf("<4. TS para densidade> <5. bin do gerador>\n");
     exit(-1);
   }
 
   unsigned long int sem, sem_rede;
   int i, **rede, *s;
-  double c_0i, c_0f, c_0;
   par P;
   char out[255], fran[255];
   FILE *in=fopen(argv[1],"r");
@@ -274,10 +234,6 @@ int main(int argc, char *argv[]) {
     rede[i]=(int *)calloc(1,I);
   }
   
-  for(c_0=c_0i;c_0<c_0f;) {
-
-  }
-
   makesw(rede,sem_rede);
   opiniao(rede,&P,s,sem,sem_rede,out,fran);
 
