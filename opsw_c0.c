@@ -20,17 +20,13 @@ typedef struct parametros {
 int n, K;
 double p;
 
-void makesw(int **rede, unsigned long int sem) {
+void makesw(int **rede, gsl_rng *r) {
 
   // Constrói a rede small-world com base numa lista de vizinhança, em que o primeiro elemento é a conectividade do sítio
 
   int i, j, nex, nrand;
   double ran;
-  gsl_rng *r;
 
-  // iniciar semente
-  r=gsl_rng_alloc(gsl_rng_mt19937);
-  gsl_rng_set(r,sem);
   for(i=0;i<n;i++) {
     for(j=1;j<=K;j++) {
       ran=gsl_rng_uniform(r);
@@ -60,8 +56,6 @@ void makesw(int **rede, unsigned long int sem) {
     }
   }
  
-  gsl_rng_free(r);
-
 }
 
 double *make_tau(int n, double J, double q, double epsilon) {
@@ -99,28 +93,19 @@ double *make_tau(int n, double J, double q, double epsilon) {
 
 }
 
-int zero(int sem, double rho_0) {
+void zero(int s_0[], gsl_rng *r, double rho_0) {
 
   // Constrói um estado incial com uma concentração rho_0 de sítios ativos
 
-  int i, *s_0;
-  gsl_rng *r=gsl_rng_alloc(gsl_rng_mt19937);;
-
-  // Iniciando a semente de números aleatórios
-  gsl_rng_set(r,sem_rede);
-
-  // Alocando o vetor de estado
-  s_0=(int *)calloc(n,I);
+  int i;
 
   for(i=0;i<n;i++) {
     if(gsl_rng_uniform(r)<rho_0) s_0[i]=1;
   }
 
-  return s_0;
-
 }
 
-void opiniao(int **rede, par *P, int s[], unsigned long int sem, unsigned long int sem_rede, char out[], char fran[]) {
+void opiniao(int **rede, par *P, int s[], gsl_rng *r, char out[]) {
   // ---------------------------------------------------
   // Aqui é a parte da simulação da dinâmica de opinião.
   // ---------------------------------------------------
@@ -130,10 +115,8 @@ void opiniao(int **rede, par *P, int s[], unsigned long int sem, unsigned long i
   double epsilon=P->eps, J=P->J, q=P->q;
   int i, w, t, tt, T=P->T_mcs, nt=P->D_mcs; // passo monte-carlo e iterador de sítios da rede
   double *tau, rho=0; // campo local de cada sítio e taca de transição
-  FILE *f=fopen(out,"w"), *g, *ff=fopen(fran,"r");
+  FILE *f=fopen(out,"w"), *g;
   char ou[255];
-  // Variáveis do gerador
-  gsl_rng *r;
 
   // Arquivo de saída de estado
   strcpy(ou,out);
@@ -147,10 +130,6 @@ void opiniao(int **rede, par *P, int s[], unsigned long int sem, unsigned long i
   
   // Constrói as taxas de k=0 até o grau máximo
   tau=make_tau(k_max,J,q,epsilon);
-  // Iniciando a semente de números aleatórios
-  r = gsl_rng_alloc (gsl_rng_mt19937);
-  gsl_rng_fread(ff,r);
-  fclose(ff);
 
   for(i=0;i<n;i++)
     rho+=s[i];
@@ -162,7 +141,7 @@ void opiniao(int **rede, par *P, int s[], unsigned long int sem, unsigned long i
   for(t=0;t<T;t+=nt) {
     g=fopen(ou,"w");
     ff=fopen(fran,"w");
-    fprintf(g,"# N=%d\tk=%d\tp=%lf\tsem=-1\tJ=%lf\teps=%lf\tq=%lf\tSR=%lu\n",n,K,p,J,epsilon,q,sem_rede);
+    fprintf(g,"# N=%d\tk=%d\tp=%lf\tsem=-1\tJ=%lf\teps=%lf\tq=%lf\tSR=%lu\n",n,K,p,J,epsilon,q,sem);
     fprintf(g, "# Semente: -1\n");
     for(tt=0;tt<nt;tt++) {
             
@@ -203,8 +182,6 @@ void opiniao(int **rede, par *P, int s[], unsigned long int sem, unsigned long i
   
   free(tau);
   free(h);
-  // Libera memória do gerador
-  gsl_rng_free (r);
   
 }
 
@@ -215,87 +192,68 @@ int main(int argc, char *argv[]) {
   // com o meso valor de p.
   // ----------------------------------------------------------------
 
-  if(argc<8) {
-    printf("Use %s <Dados de entrada: >\n",argv[0]);
-    printf("Dados de entrada: <n sítios>"); // 1
-    printf(" <k vizinhos pra frente>"); // 2
-    printf(" <p WS-model>"); // 3
-    printf(" <semente>"); // 4
-    printf(" <epsilon>"); // 5
-    printf(" <J>"); // 6
-    printf(" <q>"); // 7
+  if(argc<14) {
+    printf("Use %s <Dados de entrada:> <11. T mcs> <12. T mcs para salvar>  <13. saida s/ extensao>\n",argv[0]);
+    printf("1. Dados de entrada: <n sítios>");
+    printf("2. <k vizinhos pra frente>");
+    printf("3. <p WS-model>");
+    printf("4. <semente>");
+    printf("5. <epsilon>");
+    printf("6. <J>");
+    printf("7. <q>");
+    printf("8. <densidade inicial>");
+    printf("9. <densidade final>");
+    printf("10. <# de condicoes inicias>");
     printf("Veja o cabeçalho do fonte para as definições dos parametros\n");
     exit(-1);
   }
 
-  if(argc<6) {
-    printf("Use %s <2. T mcs> <3. T mcs para salvar> ",argv[0]);
-    printf("<4. TS para densidade>\n");
-    exit(-1);
-  }
-
   unsigned long int sem, sem_rede;
-  int i, **rede, *s;
-  double c_0i, c_0f, c_0;
+  int i, **rede, *s, num_c=atoi(argv[10]);
+  double c_0i=strtod(argv[8],NULL), c_0f=strtod(argv[9],NULL), c_0, delta_c=(c_0f-c_0i)/(double)num_c;
   par P;
-  char out[255], fran[255];
-  FILE *in=fopen(argv[1],"r");
-
-  // int *hist;
-
-  if(in==NULL) {
-    printf("Arquivo de estado inicial inválido.\n");
-    exit(-1);
-  }
-
-  // Coletando informações a partir do arquivo de estado inicial
-  fscanf(in,"# N=%d\tk=%d\tp=%lf\tsem=%lu\tJ=%lf\teps=%lf\tq=%lf\tSR=%lu\n",&n,&K,&p,&sem,&P.J,&P.eps,&P.q,&sem_rede);
-  fscanf(in, "# Semente: %lu\n", &sem);
-  P.T_mcs=atoi(argv[2]); P.D_mcs=atoi(argv[3]);
-
-  // Obtendo estado inicial
-  s=(int *)calloc(n,I);
-  for(i=0;i<n;i++) {
-    fscanf(in,"%d",&s[i]);
-  }
-  fclose(in);
+  char out[255], char ai[255];
+  gsl_rng *r;
 
   // Nomes para saída do modelo e entrada do gerador
-  strcpy(out,argv[4]);
-  strcpy(fran,argv[5]);
+  strcpy(out,argv[13]);
+
+  // Copia os parâmetros da lista de argumetos
+  P.T_mcs=atoi(argv[11]); P.D_mcs=atoi(argv[12]);
+  n=atoi(argv[1]);
+  K=atoi(argv[2]);
+  p=strtod(argv[3],NULL);
+  sem=strtoul(argv[4],NULL,10);
+  P.J=strtod(argv[6],NULL); P.eps=strtod(argv[5],NULL); P.q=strtod(argv[7],NULL);
+
+  // Iniciando a semente de números aleatórios
+  r = gsl_rng_alloc (gsl_rng_mt19937);
+  gsl_rng_set(r,sem);
 
   // Mostra na tela os parâmetros do problema
-  printf("\n# N=%d\tk=%d\tp=%lf\tsem=%lu\tJ=%lf\teps=%lf\tq=%lf\tSR=%lu\n",
-  	  n,K,p,sem,P.J,P.eps,P.q,sem_rede);
+  printf("\n# N=%d\tk=%d\tp=%lf\tsem=%lu\tJ=%lf\teps=%lf\tq=%lf\n",
+  	  n,K,p,sem,P.J,P.eps,P.q);
 
   // Alocando a estrutura de armazenamento da rede
   rede=(int **)malloc(n*Ip);
   for(i=0;i<n;i++) {
     rede[i]=(int *)calloc(1,I);
   }
+  s=(int *)calloc(n,I);
   
-  for(c_0=c_0i;c_0<c_0f;) {
-
+  i=0;
+  for(c_0=c_0i;c_0<c_0f;c_0+=delta_c) {
+    itoa(i,ai,10); // para diferenciar os arquivos de saída
+    strcat(out,ai); // a raiz será dada
+    makesw(rede,r);
+    zero(s,r,c_0);
+    opiniao(rede,&P,s,r,out);
+    i++;
   }
 
-  makesw(rede,sem_rede);
-  opiniao(rede,&P,s,sem,sem_rede,out,fran);
-
-
-  /* hist=(int *)calloc(n,I); */
-  /* for(i=0;i<n;i++) { */
-  /*   hist[rede[i][0]]++; */
-  /* } */
-
-  /* for(i=0;i<n;i++) */
-  /*   if(hist[i]!=0) printf("%d %d\n",i,hist[i]); */
-
-  /* for(i=0;i<n;i++) { */
-  /*   free(rede[i]); */
-  /* } */
-  /* free(hist); */
-
+  // Liberando memória
   free(rede);
+  gsl_rng_free(r);
 
   //printf("A semente foi %lu.\n", sem);
 
