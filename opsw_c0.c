@@ -140,8 +140,7 @@ void opiniao(int **rede, par *P, int s[], gsl_rng *r, char out[]) {
   // O monte-carlo começa aqui
   for(t=0;t<T;t+=nt) {
     g=fopen(ou,"w");
-    ff=fopen(fran,"w");
-    fprintf(g,"# N=%d\tk=%d\tp=%lf\tsem=-1\tJ=%lf\teps=%lf\tq=%lf\tSR=%lu\n",n,K,p,J,epsilon,q,sem);
+    fprintf(g,"# N=%d\tk=%d\tp=%lf\tsem=-1\tJ=%lf\teps=%lf\tq=%lf\tSR=%lu\n",n,K,p,J,epsilon,q,gsl_rng_get(r));
     fprintf(g, "# Semente: -1\n");
     for(tt=0;tt<nt;tt++) {
             
@@ -175,9 +174,7 @@ void opiniao(int **rede, par *P, int s[], gsl_rng *r, char out[]) {
     // Salvando o estado
     for(i=0;i<n;i++)
       fprintf(g, "%d\n", s[i]);
-    gsl_rng_fwrite(ff,r);
     fclose(g);
-    fclose(ff);
   }
   
   free(tau);
@@ -212,7 +209,7 @@ int main(int argc, char *argv[]) {
   int i, **rede, *s, num_c=atoi(argv[10]);
   double c_0i=strtod(argv[8],NULL), c_0f=strtod(argv[9],NULL), c_0, delta_c=(c_0f-c_0i)/(double)num_c;
   par P;
-  char out[255], char ai[255];
+  char out[255], ai[255];
   gsl_rng *r;
 
   // Nomes para saída do modelo e entrada do gerador
@@ -243,8 +240,7 @@ int main(int argc, char *argv[]) {
   
   i=0;
   for(c_0=c_0i;c_0<c_0f;c_0+=delta_c) {
-    itoa(i,ai,10); // para diferenciar os arquivos de saída
-    strcat(out,ai); // a raiz será dada
+    sprintf(out,"%s%d",out,i); // para diferenciar os arquivos de saída
     makesw(rede,r);
     zero(s,r,c_0);
     opiniao(rede,&P,s,r,out);
