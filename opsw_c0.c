@@ -26,6 +26,9 @@ void makesw(int **rede, gsl_rng *r) {
 
   int i, j, nex, nrand;
   double ran;
+  
+  // Conectividades nulas inicialmente
+  for(i=0;i<n;i++) rede[i][0]=0;
 
   for(i=0;i<n;i++) {
     for(j=1;j<=K;j++) {
@@ -101,6 +104,7 @@ void zero(int s_0[], gsl_rng *r, double rho_0) {
 
   for(i=0;i<n;i++) {
     if(gsl_rng_uniform(r)<rho_0) s_0[i]=1;
+    else s_0[i]=0;
   }
 
 }
@@ -177,6 +181,8 @@ void opiniao(int **rede, par *P, int s[], gsl_rng *r, char out[]) {
     fclose(g);
   }
   
+  fclose(f);
+
   free(tau);
   free(h);
   
@@ -191,23 +197,23 @@ int main(int argc, char *argv[]) {
 
   if(argc<14) {
     printf("Use %s <Dados de entrada:> <11. T mcs> <12. T mcs para salvar>  <13. saida s/ extensao>\n",argv[0]);
-    printf("1. Dados de entrada: <n sítios>");
-    printf("2. <k vizinhos pra frente>");
-    printf("3. <p WS-model>");
-    printf("4. <semente>");
-    printf("5. <epsilon>");
-    printf("6. <J>");
-    printf("7. <q>");
-    printf("8. <densidade inicial>");
-    printf("9. <densidade final>");
+    printf("1. Dados de entrada: <n sítios>\n");
+    printf("2. <k vizinhos pra frente>\n");
+    printf("3. <p WS-model>\n");
+    printf("4. <semente>\n");
+    printf("5. <epsilon>\n");
+    printf("6. <J>\n");
+    printf("7. <q>\n");
+    printf("8. <densidade inicial>\n");
+    printf("9. <densidade final>\n");
     printf("10. <# de condicoes inicias>");
     printf("Veja o cabeçalho do fonte para as definições dos parametros\n");
     exit(-1);
   }
 
   unsigned long int sem, sem_rede;
-  int i, **rede, *s, num_c=atoi(argv[10]);
-  double c_0i=strtod(argv[8],NULL), c_0f=strtod(argv[9],NULL), c_0, delta_c=(c_0f-c_0i)/(double)num_c;
+  int i, **rede, *s, *s0, num_c=atoi(argv[10]);
+  double c_0i=strtod(argv[8],NULL), c_0f=strtod(argv[9],NULL), c_0, delta_c=(c_0f-c_0i)/(double)num_c, rho=0;
   par P;
   char out[255], ai[255];
   gsl_rng *r;
@@ -237,17 +243,20 @@ int main(int argc, char *argv[]) {
     rede[i]=(int *)calloc(1,I);
   }
   s=(int *)calloc(n,I);
+  s0=(int *)calloc(n,I);
   
   i=0;
   for(c_0=c_0i;c_0<c_0f;c_0+=delta_c) {
-    sprintf(out,"%s%d",out,i); // para diferenciar os arquivos de saída
+    strcpy(ai,out);
+    sprintf(ai,"%s_%d.dat",ai,i); // para diferenciar os arquivos de saída
     makesw(rede,r);
     zero(s,r,c_0);
-    opiniao(rede,&P,s,r,out);
+    opiniao(rede,&P,s,r,ai);
     i++;
   }
 
   // Liberando memória
+  for(i=0;i<n;i++) free(rede[i]);
   free(rede);
   gsl_rng_free(r);
 
