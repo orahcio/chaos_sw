@@ -237,23 +237,7 @@ int main(int argc, char *argv[]) {
   makesw(rede,sem_rede);
   opiniao(rede,&P,s,sem,sem_rede,out,fran);
 
-
-  /* hist=(int *)calloc(n,I); */
-  /* for(i=0;i<n;i++) { */
-  /*   hist[rede[i][0]]++; */
-  /* } */
-
-  /* for(i=0;i<n;i++) */
-  /*   if(hist[i]!=0) printf("%d %d\n",i,hist[i]); */
-
-  /* for(i=0;i<n;i++) { */
-  /*   free(rede[i]); */
-  /* } */
-  /* free(hist); */
-
   free(rede);
-
-  //printf("A semente foi %lu.\n", sem);
 
   return 0;
 

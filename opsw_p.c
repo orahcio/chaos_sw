@@ -196,7 +196,7 @@ int main(int argc, char *argv[]) {
   // com o meso valor de p.
   // ----------------------------------------------------------------
 
-  if(argc<14) {
+  if(argc<16) {
     printf("Use %s <Dados de entrada:> <13. T mcs> <14. T mcs para salvar>  <15. saida s/ extensao>\n",argv[0]);
     printf("1. Dados de entrada: <n sítios>\n");
     printf("2. <k vizinhos pra frente>\n");
@@ -223,27 +223,23 @@ int main(int argc, char *argv[]) {
   char out[255], ai[255];
   gsl_rng *r;
 
-  int w;
-  double Kmed;
-
   // Nomes para saída do modelo e entrada do gerador
-  strcpy(out,argv[13]);
+  strcpy(out,argv[15]);
 
   // Copia os parâmetros da lista de argumetos
-  P.T_mcs=atoi(argv[11]); P.D_mcs=atoi(argv[12]);
+  P.T_mcs=atoi(argv[13]); P.D_mcs=atoi(argv[14]);
   n=atoi(argv[1]);
   K=atoi(argv[2]);
-  p=strtod(argv[3],NULL);
-  sem=strtoul(argv[4],NULL,10);
-  P.J=strtod(argv[6],NULL); P.eps=strtod(argv[5],NULL); P.q=strtod(argv[7],NULL);
+  sem=strtoul(argv[3],NULL,10);
+  P.J=strtod(argv[5],NULL); P.eps=strtod(argv[4],NULL); P.q=strtod(argv[6],NULL);
 
   // Iniciando a semente de números aleatórios
   r = gsl_rng_alloc (gsl_rng_mt19937);
   gsl_rng_set(r,sem);
 
   // Mostra na tela os parâmetros do problema
-  printf("\n# N=%d\tk=%d\tp=%lf\tsem=%lu\tJ=%lf\teps=%lf\tq=%lf\n",
-  	  n,K,p,sem,P.J,P.eps,P.q);
+  printf("\n# N=%d\tk=%d\tsem=%lu\tJ=%lf\teps=%lf\tq=%lf\n",
+  	  n,K,sem,P.J,P.eps,P.q);
 
   // Alocando a estrutura de armazenamento da rede
   rede=(int **)malloc(n*Ip);
@@ -254,9 +250,9 @@ int main(int argc, char *argv[]) {
   
   i=0;
   for(c_0=c_0i;c_0<c_0f;c_0+=delta_c) {
-    for(p=p_i;p<=p_f,p+=delta_p) {
+    for(p=p_i;p<p_f;p+=delta_p) {
       strcpy(ai,out);
-      sprintf(ai,"%s_p=%1.5lf_%d.dat",ai,p,i); // para diferenciar os arquivos de saída
+      sprintf(ai,"%s_p=%g_%d.dat",ai,p,i); // para diferenciar os arquivos de saída
       makesw(rede,r);
       zero(s,r,c_0);
       opiniao(rede,&P,s,r,ai);
