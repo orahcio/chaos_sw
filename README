@@ -1,0 +1,3 @@
+Autor: Orahcio Felício de Sousa
+
+O modelo de opinião encontra-se completamente implementado, usando a gsl para gerar números aleatórios, e esquema de lista de vizinhança para representar a estrutura da rede.
