@@ -195,8 +195,8 @@ int main(int argc, char *argv[]) {
   // com o meso valor de p.
   // ----------------------------------------------------------------
 
-  if(argc<14) {
-    printf("Use %s <Dados de entrada:> <11. T mcs> <12. T mcs para salvar>  <13. saida s/ extensao>\n",argv[0]);
+  if(argc<13) {
+    printf("Use %s <Dados de entrada:> <10. T mcs> <11. T mcs para salvar>  <12. saida s/ extensao>\n",argv[0]);
     printf("1. Dados de entrada: <n sítios>\n");
     printf("2. <k vizinhos pra frente>\n");
     printf("3. <p WS-model>\n");
@@ -205,29 +205,28 @@ int main(int argc, char *argv[]) {
     printf("6. <J>\n");
     printf("7. <q>\n");
     printf("8. <densidade inicial>\n");
-    printf("9. <densidade final>\n");
-    printf("10. <# de condicoes inicias>");
+    printf("9. <# de sementes>");
     printf("Veja o cabeçalho do fonte para as definições dos parametros\n");
     exit(-1);
   }
 
   unsigned long int sem, sem_rede;
-  int i, **rede, *s, *s0, num_c=atoi(argv[10]);
-  double c_0i=strtod(argv[8],NULL), c_0f=strtod(argv[9],NULL), c_0, delta_c=(c_0f-c_0i)/(double)num_c, rho=0;
+  int i, v, **rede, *s, *s0, num_S=atoi(argv[9]);
+  double c_0=strtod(argv[8],NULL), rho=0;
   par P;
   char out[255], ai[255];
   gsl_rng *r;
 
-  // Nomes para saída do modelo e entrada do gerador
-  strcpy(out,argv[13]);
-
   // Copia os parâmetros da lista de argumetos
-  P.T_mcs=atoi(argv[11]); P.D_mcs=atoi(argv[12]);
+  P.T_mcs=atoi(argv[10]); P.D_mcs=atoi(argv[11]);
   n=atoi(argv[1]);
   K=atoi(argv[2]);
   p=strtod(argv[3],NULL);
   sem=strtoul(argv[4],NULL,10);
   P.J=strtod(argv[6],NULL); P.eps=strtod(argv[5],NULL); P.q=strtod(argv[7],NULL);
+
+  // Nomes para saída do modelo e entrada do gerador
+  sprintf(out,"N=%d_K=%d_e=%g_J=%g_q=%g",n,2*K,P.eps,P.J,P.q);
 
   // Iniciando a semente de números aleatórios
   r = gsl_rng_alloc (gsl_rng_mt19937);
@@ -244,15 +243,14 @@ int main(int argc, char *argv[]) {
   }
   s=(int *)calloc(n,I);
   s0=(int *)calloc(n,I);
-  
+  makesw(rede,r);
+  zero(s0,r,c_0);
   i=0;
-  for(c_0=c_0i;c_0<c_0f;c_0+=delta_c) {
+  for(i=0;i<num_S;i++) {
     strcpy(ai,out);
     sprintf(ai,"%s_%d.dat",ai,i); // para diferenciar os arquivos de saída
-    makesw(rede,r);
-    zero(s,r,c_0);
+    for(v=0;v<n;v++) s[v]=s0[v];
     opiniao(rede,&P,s,r,ai);
-    i++;
   }
 
   // Liberando memória

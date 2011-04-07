@@ -212,7 +212,7 @@ int main(int argc, char *argv[]) {
   }
 
   unsigned long int sem, sem_rede;
-  int i, A=atoi(argv[9]), **rede, *s, *s0;
+  int i, w, A=atoi(argv[9]), **rede, *s, *s0;
   double c_0, rho=strtod(argv[8],NULL);
   par P;
   char out[255], ai[255];
@@ -246,12 +246,14 @@ int main(int argc, char *argv[]) {
     rede[i]=(int *)calloc(1,I);
   }
   s=(int *)calloc(n,I);
+  s0=(int *)calloc(n,I);
   
   makesw(rede,r); // Apenas uma rede
+  zero(s0,r,c_0);
   for(i=0;i<A<i++) {
     strcpy(ai,out);
     sprintf(ai,"%s_%d.dat",ai,i); // para diferenciar os arquivos de saída
-    zero(s,r,c_0);
+    for(w=0;w<n;w++) s[w]=s0[w];
     opiniao(rede,&P,s,r,ai);
     i++;
   }
@@ -260,6 +262,7 @@ int main(int argc, char *argv[]) {
   for(i=0;i<n;i++) free(rede[i]);
   free(rede);
   free(s);
+  free(s0);
   gsl_rng_free(r);
 
   //printf("A semente foi %lu.\n", sem);

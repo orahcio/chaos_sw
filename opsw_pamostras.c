@@ -159,11 +159,10 @@ void opiniao(int **rede, par *P, int s[], gsl_rng *r, char out[]) {
 
       // Atualiza os sítios
       for(i=0;i<n;i++) {
-	if(gsl_rng_uniform(r)<tau[IDX(h[i],rede[i][0])]) {
-	  if(s[i]==0) s[i]=1;
-	}
+	if(gsl_rng_uniform(r)<tau[IDX(h[i],rede[i][0])])
+	  s[i]=1;
 	else
-	  if(s[i]==1) s[i]=0;
+	  s[i]=0;
       }
 
       // Calcula a densidade de estados
