@@ -195,8 +195,8 @@ int main(int argc, char *argv[]) {
   // com o meso valor de p.
   // ----------------------------------------------------------------
 
-  if(argc<13) {
-    printf("Use %s <Dados de entrada:> <10. T mcs> <11. T mcs para salvar>  <12. saida s/ extensao>\n",argv[0]);
+  if(argc<12) {
+    printf("Use %s <Dados de entrada:> <10. T mcs> <11. T mcs para salvar>\n",argv[0]);
     printf("1. Dados de entrada: <n sítios>\n");
     printf("2. <k vizinhos pra frente>\n");
     printf("3. <p WS-model>\n");
@@ -224,6 +224,9 @@ int main(int argc, char *argv[]) {
   p=strtod(argv[3],NULL);
   sem=strtoul(argv[4],NULL,10);
   P.J=strtod(argv[6],NULL); P.eps=strtod(argv[5],NULL); P.q=strtod(argv[7],NULL);
+
+  // Nomes para saída do modelo e entrada do gerador
+  sprintf(out,"N=%d_K=%d_e=%g_J=%g_q=%g_p=%g",n,2*K,P.eps,P.J,P.q,p);
 
   // Nomes para saída do modelo e entrada do gerador
   sprintf(out,"N=%d_K=%d_e=%g_J=%g_q=%g",n,2*K,P.eps,P.J,P.q);
